@@ -6,9 +6,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.Random;
 
-/**
- * Created by infuntis on 15/01/17.
- */
 public class GameField extends JPanel implements ActionListener{
     private final int SIZE = 320;
     private final int DOT_SIZE = 16;
@@ -18,6 +15,8 @@ public class GameField extends JPanel implements ActionListener{
     private int appleX;
     private int appleY;
     private int[] x = new int[ALL_DOTS];
+    private int[][] borderXY = new int[21][21];
+    private int[] borderY = new int[21];
     private int[] y = new int[ALL_DOTS];
     private int dots;
     private Timer timer;
@@ -26,9 +25,10 @@ public class GameField extends JPanel implements ActionListener{
     private boolean up = false;
     private boolean down = false;
     private boolean inGame = true;
-
+    JButton restart;
 
     public GameField(){
+        this.setLayout(null);
         setBackground(Color.black);
         loadImages();
         initGame();
@@ -38,19 +38,32 @@ public class GameField extends JPanel implements ActionListener{
     }
 
     public void initGame(){
+        left = false;
+        right = true;
+        up = false;
+        down = false;
+        inGame = true;
         dots = 3;
         for (int i = 0; i < dots; i++) {
             x[i] = 48 - i*DOT_SIZE;
             y[i] = 48;
         }
-        timer = new Timer(150,this);
+        timer = new Timer(250,this);
         timer.start();
         createApple();
+
+
     }
 
     public void createApple(){
+
         appleX = new Random().nextInt(20)*DOT_SIZE;
+
         appleY = new Random().nextInt(20)*DOT_SIZE;
+                if (appleX == 0 || (appleY== 0) || appleX == 320 || (appleY== 320)) {
+                    createApple();
+                }
+
     }
 
     public void loadImages(){
@@ -63,31 +76,40 @@ public class GameField extends JPanel implements ActionListener{
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        for (int x = 0; x < SIZE; x+=16) {
-            g.drawRect(x,0,16,16);
-            g.setColor(Color.white);
-            g.drawRect(x,320,16,16);
+
+        for (int x = 0; x <= SIZE; x+=16) {
+            g.fillRect(x,0,16,16);
+            g.fillRect(x,320,16,16);
+            g.setColor(Color.gray);
         }
-        for (int y = 0; y < SIZE; y+=16) {
-            g.drawRect(0,y,16,16);
-            g.drawRect(320,y,16,16);
+        for (int y = 0; y <= SIZE; y+=16) {
+            g.fillRect(0,y,16,16);
+            g.fillRect(320,y,16,16);
+            g.setColor(Color.gray);
 
         }
         if(inGame){
-//            g.drawString("Your score: " + dots, 0,0);
-            g.drawString("x, y apple: " + appleX + " " + appleY, 0,10);
-            g.drawString("x, y snake: " + x[0] + " " + y[0], 0,20);
+            int score = dots - 3;
+            g.drawString("Your score: " + score, 32, 32);
+            g.setColor(Color.white);
             g.drawImage(apple,appleX,appleY,this);
             for (int i = 0; i < dots; i++) {
                 g.drawImage(dot,x[i],y[i],this);
 
             }
         } else{
+            timer.stop();
+            int score = dots - 3;
             String str = "Game Over";
-            //Font f = new Font("Arial",14,Font.BOLD);
             g.setColor(Color.white);
-            // g.setFont(f);
-            g.drawString(str,125,SIZE/2);
+            restart = new JButton();
+            restart.setText("Restart game");
+            restart.setBounds(90,170,150,50);
+            restart.addActionListener(new restartButtonListener());
+            this.add(restart);
+            g.drawString(str,135,SIZE/2);
+            g.setColor(Color.gray);
+            g.drawString("Your score: " + score,130,260);
         }
     }
 
@@ -147,6 +169,17 @@ public class GameField extends JPanel implements ActionListener{
         repaint();
     }
 
+    public class restartButtonListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            initGame();
+            remove(restart);
+            revalidate();
+            repaint();
+        }
+    }
+
     class FieldKeyListener extends KeyAdapter{
         @Override
         public void keyPressed(KeyEvent e) {
@@ -175,6 +208,5 @@ public class GameField extends JPanel implements ActionListener{
             }
         }
     }
-
 
 }
